@@ -63,10 +63,8 @@ public class MobCount implements ModInitializer {
 
 	public static int mobCount(ServerCommandSource source, BlockPos blockPos, BlockPos blockPos2, Collection<? extends Entity> collection) throws CommandSyntaxException {
 		final PlayerEntity self = source.getPlayer(); // If not a player than the command ends
-		if(collection.size()==0) return 0;
 		Entity entity = (Entity)collection.toArray()[0];
 		var blockLst = BlockPos.iterate(blockPos, blockPos2);
-		Box b = new Box(blockPos,blockPos2);
 		var world = source.getWorld();
 		int spawnableBlock = 0;
 		int blocksQty = 0;
@@ -75,30 +73,28 @@ public class MobCount implements ModInitializer {
 		{
 			blocksQty++;
 			var bposup = bpos.up();
-			var x = world.getBlockState(bposup);
-			if(x.getBlock().canMobSpawnInside())
+			var blockCheckSpawn = world.getBlockState(bposup);
+			//var xx = world.getBlockState(bpos);
+			//if(xx.allowsSpawning(world, bposup, entity.getType()))
+			if(blockCheckSpawn.getBlock().canMobSpawnInside())
 			{
 				spawnableBlock++;
 			}
 			for(Entity entToTest : collection)
 			{
-					//var entityList = world.getEntitiesByType(entity.getType(), new Box(blockPos, blockPos2),EntityPredicates.VALID_LIVING_ENTITY);
 					if(entToTest.getBlockX() == bpos.getX() && entToTest.getBlockZ() == bpos.getZ() && (entToTest.getBlockY() == bposup.getY() || entToTest.getBodyY(1) == bposup.getY()))
 					{
 						spawnedMobs++;
 					}
 			}
 		}
-
 		self.sendMessage(Text.literal(String.format("Total blocks: %d",blocksQty)));
 		self.sendMessage(Text.literal(String.format("Total spawnable blocks: %d",spawnableBlock)));
-
-		
-		self.sendMessage(Text.literal(String.format("Total %s found: %d",entity.getDisplayName(),spawnedMobs)));
+		self.sendMessage(Text.literal(String.format("Total %s(s) found: %d", entity.getDisplayName().getString(),spawnedMobs)));
 		if(spawnedMobs > 0)
 		{
 			float ratio = ((float)spawnableBlock/spawnedMobs);
-			self.sendMessage(Text.literal(String.format("Entity on block ratio: %f",ratio)));
+			self.sendMessage(Text.literal(String.format("Entities on spawnable blocks ratio: %f",ratio)));
 		}
 
 		return 1;
