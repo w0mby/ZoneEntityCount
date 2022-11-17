@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.context.StringRange;
@@ -63,7 +64,7 @@ public class MobCount implements ModInitializer {
 			.then(ClientCommandManager.argument("pos1x",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos1z",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos1y",DoubleArgumentType.doubleArg())
 			
 				.then(ClientCommandManager.argument("pos2x",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos2z",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos2y",DoubleArgumentType.doubleArg())
-					.then(ClientCommandManager.argument("mobToCount", EntityArgumentType.entities())
+					.then(ClientCommandManager.argument("mobToCount", StringArgumentType.word())
 						.executes(
 							ctx -> mobCount(
 								ctx.getSource(),
