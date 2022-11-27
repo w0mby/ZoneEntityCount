@@ -1,13 +1,6 @@
 package net.mobcount;
 
-import static net.minecraft.server.command.CommandManager.literal;
-
-import java.util.Collection;
 import java.util.List;
-
-import javax.print.DocFlavor;
-
-import static net.minecraft.server.command.CommandManager.argument;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,27 +13,21 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.block.Material;
-import net.minecraft.command.argument.BlockPosArgumentType;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import net.mobcount.util.DataStorage;
+import net.mobcount.util.PlayerData;
+import net.mobcount.util.Zone;
 
 public class MobCount implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -73,9 +60,39 @@ public class MobCount implements ModInitializer {
 								captureLastArgument(ctx)
 							)
 						)
+						.then(ClientCommandManager.literal("set")
+						.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
+							.executes(
+								ctx -> saveZone(ctx,
+									StringArgumentType.getString(ctx, "ZoneName"),
+									new Vec3d(DoubleArgumentType.getDouble(ctx, "pos1x"),DoubleArgumentType.getDouble(ctx, "pos1z"),DoubleArgumentType.getDouble(ctx, "pos1y")),
+									new Vec3d(DoubleArgumentType.getDouble(ctx, "pos2x"),DoubleArgumentType.getDouble(ctx, "pos2z"),DoubleArgumentType.getDouble(ctx, "pos2y")),
+									StringArgumentType.getString(ctx, "mobToCount"))
+								)
+							)
+						)
+
 					)
 				)))
 			)))
+			.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
+				.executes(
+					ctx -> mobCountZone(
+						ctx.getSource(),
+						StringArgumentType.getString(ctx, "ZoneName")
+					)
+				)
+			)
+			.then(ClientCommandManager.literal("del")
+				.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
+					.executes(
+						ctx -> delZone(
+							ctx.getSource(),
+							StringArgumentType.getString(ctx, "ZoneName")
+						)
+					)
+				)
+			)
 		);
 	}
 
@@ -133,6 +150,47 @@ public class MobCount implements ModInitializer {
 			self.sendMessage(Text.literal(String.format("Entities on spawnable blocks ratio: %f",ratio)));
 		}
 
+		return 1;
+	}
+
+	public static int saveZone(CommandContext<FabricClientCommandSource> ctx,String zoneName,Vec3d pos1, Vec3d pos2, String mobType)
+	{
+		var self = ctx.getSource().getPlayer();
+		PlayerData pd = DataStorage.getOfflinePlayerData(self);
+		if(pd.zones.containsKey(zoneName)) 
+		{
+			self.sendMessage(Text.literal("that zone already exist. GoldFish memories..."));
+			return 0;
+		}
+		pd.zones.put(zoneName, new Zone(pos1, pos2,mobType));
+		DataStorage.saveOfflinePlayerData( pd );
+		self.sendMessage(Text.literal("zone recorded. Wonderful! use /mobcount " + zoneName + " to use the saved zone."));
+		return 1;
+	}
+
+	public static int mobCountZone(FabricClientCommandSource source, String zone) throws CommandSyntaxException {
+		var self = source.getPlayer();
+		PlayerData pd = DataStorage.getOfflinePlayerData(source.getPlayer());
+		if(!pd.zones.containsKey(zone))
+		{
+			self.sendMessage(Text.literal("that zone does not exist. Make an effort..."));
+			return 0;
+		}
+		Zone z = pd.zones.get(zone);
+		return mobCount(source, new BlockPos(z.pos1()), 	new BlockPos(z.pos2()),z.mobType());
+	}
+
+	public static int delZone(FabricClientCommandSource source, String zone) throws CommandSyntaxException {
+		var self = source.getPlayer();
+		PlayerData pd = DataStorage.getOfflinePlayerData(source.getPlayer());
+		if(!pd.zones.containsKey(zone))
+		{
+			self.sendMessage(Text.literal("that zone does not exist. Make an effort..."));
+			return 0;
+		}
+		pd.zones.remove(zone);
+		DataStorage.saveOfflinePlayerData(pd);
+		self.sendMessage(Text.literal("Zone deleted. Goodbye old friend..."));
 		return 1;
 	}
 }
