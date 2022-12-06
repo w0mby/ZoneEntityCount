@@ -5,9 +5,13 @@ e.g: /mobcount -3 61 -14 -5 61 17 COW
 
 You can save a zone: /mobcount -3 61 -14 -5 61 17 COW set ZoneNameToSave
 
-then to use it: /mobcount ZoneNameToUse
+then to use it: /mobcount zone ZoneNameToUse
 
-and you can delete a saved zone: /mobcount del ZoneNameToDelete
+You can delete a saved zone: /mobcount del ZoneNameToDelete
+
+And last but not least you can get the list of recorded zone /mobcount list
+
+In addition you have also a zone definition by having a Kelp in your principal hand and right click two block at the two coordinates.
 
 Implemented types
 
