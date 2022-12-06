@@ -1,14 +1,7 @@
 package net.mobcount.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.mojang.authlib.GameProfile;
-
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.Vec3d;
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -16,7 +9,17 @@ import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.math.Vec3d;
+
 public class DataStorage {
+    public static Vec3d currentPos1 = null;
+    public static Vec3d currentPos2 = null;
+    public static String currentType;
+
     public static final Gson GSON = new GsonBuilder()
             .disableHtmlEscaping()
             .setLenient()
