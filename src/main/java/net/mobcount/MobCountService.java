@@ -30,7 +30,7 @@ public class MobCountService {
 		EntityType eType = null;
 		try
 		{
-			eType = (EntityType)EntityType.class.getField(s).get(null);
+			eType = EntityType.get(s.toLowerCase()).get();
 		}
 		catch(Exception e)
 {} 

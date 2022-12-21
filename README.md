@@ -13,11 +13,5 @@ And last but not least you can get the list of recorded zone /mobcount list
 
 In addition you have also a zone definition by having a Kelp in your principal hand and right click two block at the two coordinates.
 
-Implemented types
-
-COW
-CHICKEN
-SHEEP
-PIG
-RABBIT
-GOAT
+Implemented types: any entity by using the entity_id (e.g: cow, creeper, cat, zombie_pigman,...)
+Tips: Typing an entity that does not exist will not filtering on type and will return the full count of living entity in the zone.
