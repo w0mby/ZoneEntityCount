@@ -7,5 +7,5 @@ public class ConfigManager {
 
     public static final String SUBDIRECTORY = "fabric-mobcount";
     public static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir().resolve(SUBDIRECTORY);
-
+    public static Boolean MustDrawOverlay = true;
 }

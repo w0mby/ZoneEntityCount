@@ -5,7 +5,7 @@ import java.util.List;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,31 +15,34 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.mobcount.util.DataStorage;
-import net.mobcount.util.PlayerData;
-import net.mobcount.util.Zone;
+import net.mobcount.entities.PlayerData;
+import net.mobcount.entities.Zone;
+import net.mobcount.infrastructure.PlayerDataGsonDAO;
+import net.mobcount.infrastructure.PlayerDataRepositoryImpl;
+import net.mobcount.util.ConfigManager;
+import net.mobcount.util.RenderHelper;
 
 public class MobCountService {
+
+	
+	public static PlayerDataRepositoryImpl playerDataRepository = new PlayerDataRepositoryImpl(new PlayerDataGsonDAO());
     public static int mobCount(PlayerEntity player, BlockPos blockPos, BlockPos blockPos2, String s) throws CommandSyntaxException {
-		EntityType eType;
-		World world = player.getWorld();
-		if(s == null) s = "";
-		switch(s.toUpperCase())
+		EntityType eType = null;
+		try
 		{
-			case "COW": eType = EntityType.COW; break;
-			case "CHICKEN": eType = EntityType.CHICKEN; break;
-			case "SHEEP": eType = EntityType.SHEEP; break;
-			case "PIG": eType = EntityType.PIG; break;
-			case "RABBIT": eType = EntityType.RABBIT; break;
-			case "GOAT": eType = EntityType.GOAT; break;
-			default: eType = null;
+			eType = (EntityType)EntityType.class.getField(s).get(null);
 		}
+		catch(Exception e)
+{} 
+		World world = player.getWorld();
+
 
 		var blockLst = BlockPos.iterate(blockPos, blockPos2);
 
 		int spawnableBlock = 0;
 		int blocksQty = 0;
 		int spawnedMobs = 0;
+
 		List<Entity> collection = null;
 		if(eType != null )
 		{
@@ -68,6 +71,10 @@ public class MobCountService {
 					spawnedMobs++;
 				}
 			}
+			if(ConfigManager.MustDrawOverlay)
+			{
+				RenderHelper.renderBlockOverlay(world.getBlockState(bpos).getBlock(), RenderHelper.RED);
+			}
 		}
 		player.sendMessage(Text.literal(String.format("Zone: start: %d %d %d - end: %d %d %d",blockPos.getX(),blockPos.getY(),blockPos.getZ(),blockPos2.getX(),blockPos2.getY(),blockPos2.getZ())));
 		player.sendMessage(Text.literal(String.format("Total blocks: %d",blocksQty)));
@@ -82,52 +89,68 @@ public class MobCountService {
 		return 1;
 	}
 
-	public static int saveZone(CommandContext<FabricClientCommandSource> ctx,String zoneName,Vec3d pos1, Vec3d pos2, String mobType)
+	public static int saveZone(ClientPlayerEntity player,String zoneName,Vec3d pos1, Vec3d pos2, String mobType)
 	{
-		var self = ctx.getSource().getPlayer();
-		PlayerData pd = DataStorage.getOfflinePlayerData(self);
-		if(pd.zones.containsKey(zoneName)) 
+		var server = player.getServer();
+		PlayerData pd = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
+		Zone existingZone = pd.getZone(zoneName);
+		if(existingZone != null) 
 		{
-			self.sendMessage(Text.literal("that zone already exist. GoldFish memories..."));
+			player.sendMessage(Text.literal("that zone already exist. GoldFish memories..."));
 			return 0;
 		}
-		pd.zones.put(zoneName, new Zone(pos1, pos2,mobType));
-		DataStorage.saveOfflinePlayerData( pd );
-		self.sendMessage(Text.literal("zone recorded. Wonderful! use /mobcount " + zoneName + " to use the saved zone."));
-		return 1;
-	}
-
-	public static int mobCountZone(FabricClientCommandSource source, String zone) throws CommandSyntaxException {
-		var self = source.getPlayer();
-		PlayerData pd = DataStorage.getOfflinePlayerData(source.getPlayer());
-		if(!pd.zones.containsKey(zone))
+		pd.addZone(zoneName, new Zone(pos1, pos2,mobType));
+		boolean isSaved = playerDataRepository.update(pd);
+		if(isSaved){
+			player.sendMessage(Text.literal("zone recorded. Wonderful! use /mobcount " + zoneName + " to use the saved zone."));
+			return 1;
+		}
+		else
 		{
-			self.sendMessage(Text.literal("that zone does not exist. Make an effort..."));
+			player.sendMessage(Text.literal("UhOh, we have a problem to save the zone. Check the logs you should fin the culprit."));
 			return 0;
 		}
-		Zone z = pd.zones.get(zone);
-		return mobCount(self, new BlockPos(z.pos1()), 	new BlockPos(z.pos2()),z.mobType());
 	}
 
-	public static int delZone(FabricClientCommandSource source, String zone) throws CommandSyntaxException {
-		var self = source.getPlayer();
-		PlayerData pd = DataStorage.getOfflinePlayerData(source.getPlayer());
-		if(!pd.zones.containsKey(zone))
+	public static int mobCountZone(ClientPlayerEntity player, String zoneName) throws CommandSyntaxException {
+		var server = player.getServer();
+		PlayerData pd = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
+		Zone zone = pd.getZone(zoneName);
+		if(zone == null)
 		{
-			self.sendMessage(Text.literal("that zone does not exist. Make an effort..."));
+			player.sendMessage(Text.literal("that zone does not exist. Make an effort..."));
+		}
+		return mobCount(player, new BlockPos(zone.pos1()), new BlockPos(zone.pos2()),zone.mobType());
+	}
+
+	public static int delZone(ClientPlayerEntity player, String zoneName) throws CommandSyntaxException {
+		var server = player.getServer();
+		PlayerData playerData = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
+		Zone zone = playerData.getZone(zoneName);
+		if(zone == null)
+		{
+			player.sendMessage(Text.literal("that zone does not exist. Make an effort..."));
 			return 0;
 		}
-		pd.zones.remove(zone);
-		DataStorage.saveOfflinePlayerData(pd);
-		self.sendMessage(Text.literal("Zone deleted. Goodbye old friend..."));
-		return 1;
+		playerData.removeZone(zoneName);
+		boolean isSaved = playerDataRepository.update(playerData);
+		player.sendMessage(Text.literal("Zone deleted. Goodbye old friend..."));
+		if(isSaved){
+			player.sendMessage(Text.literal("Zone deleted. Goodbye old friend..."));
+			return 1;
+		}
+		else
+		{
+			player.sendMessage(Text.literal("UhOh, we have a problem to delete the zone. Check the logs you should fin the culprit."));
+			return 0;
+		}
 	}
 
-	public static int listZones(FabricClientCommandSource source) {
-		var player = source.getPlayer();
-		PlayerData pd = DataStorage.getOfflinePlayerData(player);
+	public static int listZones(ClientPlayerEntity player) {
+		var server = player.getServer();
+		PlayerData pd = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
 		
-		for (String entry : pd.zones.keySet()) {
+		for (String entry : pd.getZones().keySet()) {
 			player.sendMessage(Text.literal("  " + entry));
 		}
 		return 1;

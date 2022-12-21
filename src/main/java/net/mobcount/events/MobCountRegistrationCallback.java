@@ -1,4 +1,4 @@
-package net.mobcount;
+package net.mobcount.events;
 
 import java.util.List;
 
@@ -12,13 +12,17 @@ import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.context.StringRange;
 
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.mobcount.MobCountService;
 
-public class CommandHandler {
-    public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) { // You can also return a LiteralCommandNode for use with possible redirects
-		
+public class MobCountRegistrationCallback implements ClientCommandRegistrationCallback {
+
+    @Override
+    public void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess registryAccess) {
 		dispatcher.register(
 			ClientCommandManager.literal("mobcount")
 			.then(ClientCommandManager.argument("pos1x",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos1z",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos1y",DoubleArgumentType.doubleArg())
@@ -36,7 +40,7 @@ public class CommandHandler {
 						.then(ClientCommandManager.literal("set")
 						.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
 							.executes(
-								ctx -> MobCountService.saveZone(ctx,
+								ctx -> MobCountService.saveZone(ctx.getSource().getPlayer(),
 									StringArgumentType.getString(ctx, "ZoneName"),
 									new Vec3d(DoubleArgumentType.getDouble(ctx, "pos1x"),DoubleArgumentType.getDouble(ctx, "pos1z"),DoubleArgumentType.getDouble(ctx, "pos1y")),
 									new Vec3d(DoubleArgumentType.getDouble(ctx, "pos2x"),DoubleArgumentType.getDouble(ctx, "pos2z"),DoubleArgumentType.getDouble(ctx, "pos2y")),
@@ -52,7 +56,7 @@ public class CommandHandler {
 				.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
 					.executes(
 						ctx -> MobCountService.mobCountZone(
-							ctx.getSource(),
+							ctx.getSource().getPlayer(),
 							StringArgumentType.getString(ctx, "ZoneName")
 						)
 					)
@@ -62,7 +66,7 @@ public class CommandHandler {
 				.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
 					.executes(
 						ctx -> MobCountService.delZone(
-							ctx.getSource(),
+							ctx.getSource().getPlayer(),
 							StringArgumentType.getString(ctx, "ZoneName")
 						)
 					)
@@ -72,16 +76,18 @@ public class CommandHandler {
 				
 					.executes(
 						ctx -> MobCountService.listZones(
-							ctx.getSource()
+							ctx.getSource().getPlayer()
 						)
 					)
 			)
 		);
-	}
+        
+    }
 
-	private static @NotNull String captureLastArgument(@NotNull CommandContext<FabricClientCommandSource> source) {
+    private static @NotNull String captureLastArgument(@NotNull CommandContext<FabricClientCommandSource> source) {
         List<ParsedCommandNode<FabricClientCommandSource>> nodes = source.getNodes();
         StringRange node = nodes.get(nodes.size() - 1).getRange();
         return source.getInput().substring(node.getStart(), node.getEnd());
     }
+    
 }

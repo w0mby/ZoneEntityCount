@@ -15,9 +15,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import net.mobcount.MobCountService;
-import net.mobcount.util.DataStorage;
 
 public class InteractKelpCallback implements UseBlockCallback {
+	private Vec3d currentPos1 = null;
+    private Vec3d currentPos2 = null;
 
     @Override
     public ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
@@ -29,19 +30,19 @@ public class InteractKelpCallback implements UseBlockCallback {
             int z = blockPos.getZ();
             player.sendMessage(Text.literal("The coordinates are x: " + x + " y: " + y + " z: " + z), true);
 
-            if(DataStorage.currentPos1 == null)
+            if(currentPos1 == null)
             {
-                DataStorage.currentPos1 = new Vec3d(x,y,z);
+                currentPos1 = new Vec3d(x,y,z);
                 player.sendMessage(Text.literal("start at x: " + x + " y: " + y + " z: " + z + ". Define end pos."), true);
-                DataStorage.currentPos2 = null;
+                currentPos2 = null;
             }
             else
             {
-                DataStorage.currentPos2 = new Vec3d(x,y,z);
+                currentPos2 = new Vec3d(x,y,z);
                 player.sendMessage(Text.literal("end at x: " + x + " y: " + y + " z: " + z), true);
                 try {
-                    MobCountService.mobCount(player, new BlockPos(DataStorage.currentPos1), new BlockPos(DataStorage.currentPos2), null);
-                    DataStorage.currentPos1 = DataStorage.currentPos2 = null;
+                    MobCountService.mobCount(player, new BlockPos(currentPos1), new BlockPos(currentPos2), null);
+                    currentPos1 = currentPos2 = null;
                     return ActionResult.SUCCESS;    
                 } catch (CommandSyntaxException e) {
                     e.printStackTrace();
