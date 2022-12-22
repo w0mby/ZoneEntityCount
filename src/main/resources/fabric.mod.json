@@ -1,1 +1,25 @@
-{"schemaVersion":1,"id":"mobcount","version":"${version}","name":"MobCount","description":"this is a description","authors":["Me"],"contact":{},"license":"CC0-1.0","icon":"assets/modid/icon.png","environment":"*","entrypoints":{"main":["net.mobcount.MobCount"]},"mixins":["mobcount.mixins.json"],"depends":{"fabricloader":">=0.14.9","fabric-api":"*","minecraft":"~1.19","java":">=17"},"suggests":{}}
+{
+    "schemaVersion":1,
+    "id":"mobcount",
+    "version":"${version}",
+    "name":"MobCount",
+    "description":"this is a description",
+    "authors":["Me"],
+    "contact":{},
+    "license":"CC0-1.0",
+    "icon":"assets/modid/icon.png",
+    "environment":"*",
+    "entrypoints":
+    {
+        "di-main":["net.mobcount.MobCount"]
+    },
+    "mixins":["mobcount.mixins.json"],
+    "depends":
+    {
+        "fabricloader":">=0.14.9",
+        "fabric-api":"*",
+        "minecraft":"~1.19",
+        "java":">=17"
+    },
+    "suggests":{}
+}

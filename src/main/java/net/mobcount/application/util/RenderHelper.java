@@ -1,6 +1,7 @@
-package net.mobcount.util;
+package net.mobcount.application.util;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.block.Block;
+import net.mobcount.infrastructure.ConfigManager;
 
 public class RenderHelper {
 

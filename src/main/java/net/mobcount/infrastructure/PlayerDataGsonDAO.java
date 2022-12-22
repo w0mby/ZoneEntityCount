@@ -12,13 +12,12 @@ import org.jetbrains.annotations.NotNull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import dev.the_fireplace.annotateddi.api.di.Implementation;
 import net.minecraft.util.math.Vec3d;
-import net.mobcount.PlayerDataDAO;
-import net.mobcount.entities.PlayerData;
-import net.mobcount.util.ConfigManager;
-import net.mobcount.util.RecordTypeAdapterFactory;
-import net.mobcount.util.Vec3Adapter;
+import net.mobcount.application.PlayerDataDAO;
+import net.mobcount.domain.entities.PlayerData;
 
+@Implementation
 public class PlayerDataGsonDAO implements PlayerDataDAO {
 
     private final Gson GSON = new GsonBuilder()

@@ -1,9 +1,10 @@
-package net.mobcount.events;
+package net.mobcount.application;
 
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.google.inject.Inject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -17,9 +18,15 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.mobcount.MobCountService;
 
 public class MobCountRegistrationCallback implements ClientCommandRegistrationCallback {
+
+	private MobCountService mobCountService;
+	@Inject
+	public MobCountRegistrationCallback(MobCountService mobCountService)
+	{
+		this.mobCountService = mobCountService;
+	}
 
     @Override
     public void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess registryAccess) {
@@ -30,7 +37,7 @@ public class MobCountRegistrationCallback implements ClientCommandRegistrationCa
 				.then(ClientCommandManager.argument("pos2x",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos2z",DoubleArgumentType.doubleArg()).then(ClientCommandManager.argument("pos2y",DoubleArgumentType.doubleArg())
 					.then(ClientCommandManager.argument("mobToCount", StringArgumentType.word())
 						.executes(
-							ctx -> MobCountService.mobCount(
+							ctx -> mobCountService.mobCount(
 								ctx.getSource().getPlayer(),
 								new BlockPos(DoubleArgumentType.getDouble(ctx, "pos1x"),DoubleArgumentType.getDouble(ctx, "pos1z"),DoubleArgumentType.getDouble(ctx, "pos1y")) ,
 								new BlockPos(DoubleArgumentType.getDouble(ctx, "pos2x"),DoubleArgumentType.getDouble(ctx, "pos2z"),DoubleArgumentType.getDouble(ctx, "pos2y")),
@@ -40,7 +47,7 @@ public class MobCountRegistrationCallback implements ClientCommandRegistrationCa
 						.then(ClientCommandManager.literal("set")
 						.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
 							.executes(
-								ctx -> MobCountService.saveZone(ctx.getSource().getPlayer(),
+								ctx -> mobCountService.saveZone(ctx.getSource().getPlayer(),
 									StringArgumentType.getString(ctx, "ZoneName"),
 									new Vec3d(DoubleArgumentType.getDouble(ctx, "pos1x"),DoubleArgumentType.getDouble(ctx, "pos1z"),DoubleArgumentType.getDouble(ctx, "pos1y")),
 									new Vec3d(DoubleArgumentType.getDouble(ctx, "pos2x"),DoubleArgumentType.getDouble(ctx, "pos2z"),DoubleArgumentType.getDouble(ctx, "pos2y")),
@@ -55,7 +62,7 @@ public class MobCountRegistrationCallback implements ClientCommandRegistrationCa
 			.then(ClientCommandManager.literal("zone")
 				.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
 					.executes(
-						ctx -> MobCountService.mobCountZone(
+						ctx -> mobCountService.mobCountZone(
 							ctx.getSource().getPlayer(),
 							StringArgumentType.getString(ctx, "ZoneName")
 						)
@@ -65,7 +72,7 @@ public class MobCountRegistrationCallback implements ClientCommandRegistrationCa
 			.then(ClientCommandManager.literal("del")
 				.then(ClientCommandManager.argument("ZoneName", StringArgumentType.word())
 					.executes(
-						ctx -> MobCountService.delZone(
+						ctx -> mobCountService.delZone(
 							ctx.getSource().getPlayer(),
 							StringArgumentType.getString(ctx, "ZoneName")
 						)
@@ -75,7 +82,7 @@ public class MobCountRegistrationCallback implements ClientCommandRegistrationCa
             .then(ClientCommandManager.literal("list")
 				
 					.executes(
-						ctx -> MobCountService.listZones(
+						ctx -> mobCountService.listZones(
 							ctx.getSource().getPlayer()
 						)
 					)

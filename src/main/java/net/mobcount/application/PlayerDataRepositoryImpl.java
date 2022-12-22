@@ -1,15 +1,16 @@
-package net.mobcount.infrastructure;
+package net.mobcount.application;
 
 import java.io.IOException;
 import java.util.UUID;
 
-import net.mobcount.PlayerDataDAO;
-import net.mobcount.PlayerDataRepository;
-import net.mobcount.entities.PlayerData;
+import com.google.inject.Inject;
+
+import net.mobcount.domain.entities.PlayerData;
 
 public class PlayerDataRepositoryImpl implements PlayerDataRepository {
     private PlayerDataDAO playerDataDao;
     
+    @Inject
     public PlayerDataRepositoryImpl(PlayerDataDAO playerDataDao)
     {
         this.playerDataDao = playerDataDao;

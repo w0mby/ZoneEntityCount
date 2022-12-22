@@ -31,8 +31,8 @@ dependencies {
 	// Uncomment the following line to enable the deprecated Fabric API modules. 
 	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
-	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
-	modImplementation include("eu.pb4:player-data-api:0.2.2+1.19.2")
+	modImplementation "dev.the-fireplace:Annotated-DI-Fabric:${project.annotateddi_version}"
+  	annotationProcessor "dev.the-fireplace:Annotated-DI-Fabric-Processor:${project.annotateddi_version}"
 }
 
 processResources {

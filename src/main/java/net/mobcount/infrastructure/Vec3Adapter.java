@@ -1,4 +1,4 @@
-package net.mobcount.util;
+package net.mobcount.infrastructure;
 import com.google.gson.*;
 import net.minecraft.util.math.Vec3d;
 import java.lang.reflect.Type;

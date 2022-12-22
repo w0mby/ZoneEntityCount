@@ -1,4 +1,4 @@
-package net.mobcount.entities;
+package net.mobcount.domain.entities;
 
 import java.util.HashMap;
 import java.util.Map;

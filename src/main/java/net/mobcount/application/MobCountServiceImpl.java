@@ -1,9 +1,10 @@
-package net.mobcount;
+package net.mobcount.application;
 
 import java.util.List;
 
-import com.mojang.brigadier.context.CommandContext;
+import com.google.inject.Inject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -15,18 +16,23 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.mobcount.entities.PlayerData;
-import net.mobcount.entities.Zone;
-import net.mobcount.infrastructure.PlayerDataGsonDAO;
-import net.mobcount.infrastructure.PlayerDataRepositoryImpl;
-import net.mobcount.util.ConfigManager;
-import net.mobcount.util.RenderHelper;
+import net.mobcount.application.util.RenderHelper;
+import net.mobcount.domain.entities.PlayerData;
+import net.mobcount.domain.entities.Zone;
+import net.mobcount.infrastructure.ConfigManager;
 
-public class MobCountService {
+public class MobCountServiceImpl implements MobCountService {
 
-	
-	public static PlayerDataRepositoryImpl playerDataRepository = new PlayerDataRepositoryImpl(new PlayerDataGsonDAO());
-    public static int mobCount(PlayerEntity player, BlockPos blockPos, BlockPos blockPos2, String s) throws CommandSyntaxException {
+
+	private PlayerDataRepositoryImpl playerDataRepository;
+
+	@Inject
+	public MobCountServiceImpl(PlayerDataRepositoryImpl playerDataRepository)
+	{
+		this.playerDataRepository = playerDataRepository;
+	}
+
+	public int mobCount(PlayerEntity player, BlockPos blockPos, BlockPos blockPos2, String s) throws CommandSyntaxException {
 		EntityType eType = null;
 		try
 		{
@@ -89,7 +95,7 @@ public class MobCountService {
 		return 1;
 	}
 
-	public static int saveZone(ClientPlayerEntity player,String zoneName,Vec3d pos1, Vec3d pos2, String mobType)
+	public int saveZone(ClientPlayerEntity player,String zoneName,Vec3d pos1, Vec3d pos2, String mobType)
 	{
 		var server = player.getServer();
 		PlayerData pd = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
@@ -112,7 +118,7 @@ public class MobCountService {
 		}
 	}
 
-	public static int mobCountZone(ClientPlayerEntity player, String zoneName) throws CommandSyntaxException {
+	public int mobCountZone(ClientPlayerEntity player, String zoneName) throws CommandSyntaxException {
 		var server = player.getServer();
 		PlayerData pd = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
 		Zone zone = pd.getZone(zoneName);
@@ -123,7 +129,7 @@ public class MobCountService {
 		return mobCount(player, new BlockPos(zone.pos1()), new BlockPos(zone.pos2()),zone.mobType());
 	}
 
-	public static int delZone(ClientPlayerEntity player, String zoneName) throws CommandSyntaxException {
+	public int delZone(ClientPlayerEntity player, String zoneName) throws CommandSyntaxException {
 		var server = player.getServer();
 		PlayerData playerData = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
 		Zone zone = playerData.getZone(zoneName);
@@ -146,7 +152,7 @@ public class MobCountService {
 		}
 	}
 
-	public static int listZones(ClientPlayerEntity player) {
+	public int listZones(ClientPlayerEntity player) {
 		var server = player.getServer();
 		PlayerData pd = playerDataRepository.get(player.getUuid(),server == null?"":server.getName());
 		

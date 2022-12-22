@@ -1,5 +1,5 @@
 
-package net.mobcount.util;
+package net.mobcount.infrastructure;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;

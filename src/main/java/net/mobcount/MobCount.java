@@ -2,8 +2,10 @@ package net.mobcount;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import dev.the_fireplace.annotateddi.api.Injectors;
+import dev.the_fireplace.annotateddi.api.di.Implementation;
 import net.fabricmc.api.ModInitializer;
+import net.mobcount.domain.GeneralRegisterHandler;
 
 public class MobCount implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -13,6 +15,9 @@ public class MobCount implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		RegisterHandler.register();
+		
+		var injector = Injectors.INSTANCE.getAutoInjector("mobcount");
+		var registerHandler = injector.getInstance(GeneralRegisterHandler.class);
+		registerHandler.register();
 	}
 }

@@ -1,7 +1,9 @@
-package net.mobcount.events;
+package net.mobcount.application;
 
+import com.google.inject.Inject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import dev.the_fireplace.annotateddi.api.di.Implementation;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,12 +16,18 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import net.mobcount.MobCountService;
-
+@Implementation
 public class InteractKelpCallback implements UseBlockCallback {
 	private Vec3d currentPos1 = null;
     private Vec3d currentPos2 = null;
 
+	private MobCountService mobCountService;
+
+    @Inject
+	public InteractKelpCallback(MobCountService mobCountService)
+	{
+		this.mobCountService = mobCountService;
+	}
     @Override
     public ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
         if(!world.isClient) return ActionResult.PASS;
@@ -41,7 +49,7 @@ public class InteractKelpCallback implements UseBlockCallback {
                 currentPos2 = new Vec3d(x,y,z);
                 player.sendMessage(Text.literal("end at x: " + x + " y: " + y + " z: " + z), true);
                 try {
-                    MobCountService.mobCount(player, new BlockPos(currentPos1), new BlockPos(currentPos2), null);
+                    mobCountService.mobCount(player, new BlockPos(currentPos1), new BlockPos(currentPos2), null);
                     currentPos1 = currentPos2 = null;
                     return ActionResult.SUCCESS;    
                 } catch (CommandSyntaxException e) {
